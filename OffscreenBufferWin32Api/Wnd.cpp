@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "App.h"
+#include "CallbackMessage.h"
 #include "resource.h"
 #include "Wnd.h"
 
@@ -19,61 +20,31 @@ bool CWnd::Init(
     return m_hwnd != nullptr;
 }
 
-static INT_PTR CALLBACK About(
-    HWND dlg,
+LRESULT CWnd::WindowProcedure(
+    HWND hwnd,
     UINT message,
     WPARAM wparam,
     LPARAM lparam
 ) {
-    switch (message) {
-    case WM_INITDIALOG:
-        return (INT_PTR)TRUE;
-    case WM_COMMAND:
-        if (LOWORD(wparam) == IDOK || LOWORD(wparam) == IDCANCEL) {
-            EndDialog(dlg, LOWORD(wparam));
-            return (INT_PTR)TRUE;
-        }
-        break;
+    if (message == WM_COMMAND) {
+        int wmid = LOWORD(wparam);
+        if (m_callback_cmds.count(wmid))
+            return m_callback_cmds[wmid]->HandleMessage(hwnd, message, wparam, lparam);
+    } else if (m_callback_wms.count(message)) {
+        return m_callback_wms[message]->HandleMessage(hwnd, message, wparam, lparam);
     }
-    return (INT_PTR)FALSE;
+    return DefWindowProc(hwnd, message, wparam, lparam);
 }
 
 static LRESULT CALLBACK WndProc(
-    HWND hWnd,
+    HWND hwnd,
     UINT message,
-    WPARAM wParam,
-    LPARAM lParam
+    WPARAM wparam,
+    LPARAM lparam
 ) {
-    switch (message) {
-    case WM_COMMAND:
-    {
-        int wmId = LOWORD(wParam);
-        switch (wmId) {
-        case IDM_ABOUT:
-            DialogBox(CApp::GetApp()->GetHinstance(), MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-            break;
-        case IDM_EXIT:
-            DestroyWindow(hWnd);
-            break;
-        default:
-            return DefWindowProc(hWnd, message, wParam, lParam);
-        }
-    }
-    break;
-    case WM_PAINT:
-    {
-        PAINTSTRUCT ps;
-        HDC hdc = BeginPaint(hWnd, &ps);
-        EndPaint(hWnd, &ps);
-    }
-    break;
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        break;
-    default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
-    }
-    return 0;
+    if (CApp::GetApp()->GetWnd())
+        return CApp::GetApp()->GetWnd()->WindowProcedure(hwnd, message, wparam, lparam);
+    return DefWindowProc(hwnd, message, wparam, lparam);
 }
 
 ATOM CWnd::MyRegisterClass(
@@ -107,4 +78,18 @@ bool CWnd::Update(
     if (!m_hwnd)
         return false;
     return ::UpdateWindow(m_hwnd);
+}
+
+void CWnd::AddCallbackWm(
+    UINT message,
+    ICallbackMessage * callback
+) {
+    m_callback_wms[message] = callback;
+}
+
+void CWnd::AddCallbackCmd(
+    UINT wmid,
+    ICallbackMessage * callback
+) {
+    m_callback_cmds[wmid] = callback;
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+class CControl;
 class CWnd;
 
 class CApp {
@@ -15,6 +16,7 @@ public:
     virtual int GetIdMenu();
     virtual wchar_t * GetTitle();
     virtual wchar_t * GetWindowClass();
+    virtual CWnd * GetWnd();
 
 private:
     enum {
@@ -22,9 +24,7 @@ private:
     };
 
 private:
-    virtual ATOM MyRegisterClass(HINSTANCE hInstance);
-
-private:
+    CControl * m_control = nullptr;
     HINSTANCE m_instance;
     wchar_t m_title[MAX_LOADSTRING] = { 0 };
     wchar_t m_window_class[MAX_LOADSTRING] = { 0 };
