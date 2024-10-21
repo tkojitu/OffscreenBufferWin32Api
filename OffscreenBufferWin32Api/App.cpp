@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "App.h"
 #include "resource.h"
+#include "Wnd.h"
 
 CApp * CApp::GetApp(
 ) {
@@ -14,10 +15,12 @@ CApp * CApp::GetApp(
 
 CApp::CApp(
 ) {
+    m_wnd = new CWnd(this);
 }
 
 CApp::~CApp(
 ) {
+    delete m_wnd;
 }
 
 bool CApp::InitInstance(
@@ -27,13 +30,10 @@ bool CApp::InitInstance(
     m_instance = instance;
     LoadString(instance, IDS_APP_TITLE, m_title, MAX_LOADSTRING);
     LoadString(instance, IDC_OFFSCREENBUFFERWIN32API, m_window_class, MAX_LOADSTRING);
-    MyRegisterClass(instance);
-    HWND hwnd = CreateWindowW(m_window_class, m_title, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, instance, nullptr);
-    if (!hwnd) {
+    if (!m_wnd->Init())
         return false;
-    }
-    ShowWindow(hwnd, cmdshow);
-    UpdateWindow(hwnd);
+    m_wnd->Show(cmdshow);
+    m_wnd->Update();
     return true;
 }
 
@@ -116,4 +116,24 @@ ATOM CApp::MyRegisterClass(
 HINSTANCE CApp::GetHinstance(
 ) {
     return m_instance;
+}
+
+wchar_t * CApp::GetTitle(
+) {
+    return m_title;
+}
+
+wchar_t * CApp::GetWindowClass(
+) {
+    return m_window_class;
+}
+
+int CApp::GetIdIcon(
+) {
+    return IDI_OFFSCREENBUFFERWIN32API;
+}
+
+int CApp::GetIdMenu(
+) {
+    return IDC_OFFSCREENBUFFERWIN32API;
 }
