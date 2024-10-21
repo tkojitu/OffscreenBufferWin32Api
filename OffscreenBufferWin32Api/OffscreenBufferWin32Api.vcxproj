@@ -149,6 +149,7 @@
   <ItemGroup>
     <ClInclude Include="App.h" />
     <ClInclude Include="CallbackMessage.h" />
+    <ClInclude Include="CallbackTimer.h" />
     <ClInclude Include="Control.h" />
     <ClInclude Include="OffscreenBufferWin32Api.h" />
     <ClInclude Include="resource.h" />

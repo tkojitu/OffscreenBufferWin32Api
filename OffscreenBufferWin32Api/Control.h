@@ -11,4 +11,5 @@ public:
 
 private:
     vector<ICallbackMessage*> m_callbacks;
+
 };

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "App.h"
 #include "CallbackMessage.h"
+#include "CallbackTimer.h"
 #include "resource.h"
 #include "Wnd.h"
 
@@ -30,6 +31,12 @@ LRESULT CWnd::WindowProcedure(
         int wmid = LOWORD(wparam);
         if (m_callback_cmds.count(wmid))
             return m_callback_cmds[wmid]->HandleMessage(hwnd, message, wparam, lparam);
+    } else if (message == WM_TIMER) {
+        ICallbackTimer * ct = (ICallbackTimer*)wparam;
+        if (m_callback_tms.count(ct)) {
+            ct->OnTimer(hwnd, message, wparam, lparam);
+            return 0;
+        }
     } else if (m_callback_wms.count(message)) {
         return m_callback_wms[message]->HandleMessage(hwnd, message, wparam, lparam);
     }
@@ -92,4 +99,46 @@ void CWnd::AddCallbackCmd(
     ICallbackMessage * callback
 ) {
     m_callback_cmds[wmid] = callback;
+}
+
+RECT CWnd::GetClientRect(
+) {
+    if (!m_hwnd)
+        return { 0, 0, 0, 0 };
+    RECT rect = { 0 };
+    ::GetClientRect(m_hwnd, &rect);
+    return rect;
+}
+
+bool CWnd::InvalidateRect(
+    RECT rect,
+    bool erase
+) {
+    if (!m_hwnd)
+        return false;
+    return ::InvalidateRect(m_hwnd, &rect, erase);
+}
+
+bool CWnd::KillTimer(
+    ICallbackTimer * callback
+) {
+    m_callback_tms.erase(callback);
+    if (!m_hwnd)
+        return false;
+    return ::KillTimer(m_hwnd, (UINT_PTR)callback);
+}
+
+UINT_PTR CWnd::SetTimer(
+    ICallbackTimer * callback,
+    UINT elapse
+) {
+    if (!m_hwnd)
+        return 0;
+    m_callback_tms[callback] = true;
+    return ::SetTimer(m_hwnd, (UINT_PTR)callback, elapse, NULL);
+}
+
+HWND CWnd::GetHwnd(
+) {
+    return m_hwnd;
 }
