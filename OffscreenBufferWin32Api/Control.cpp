@@ -23,6 +23,9 @@ public:
         PAINTSTRUCT ps;
         HDC dc = BeginPaint(hwnd, &ps);
         DrawRect(dc);
+        const wchar_t * msg = L"hello, world";
+        RECT r = { 100, 100, 200, 200 };
+        DrawText(dc, msg, wcslen(msg), &r, DT_CENTER);
         EndPaint(hwnd, &ps);
         return 0;
     }
@@ -50,7 +53,7 @@ public:
 
     virtual void MoveRect() {
         RECT rect = m_wnd->GetClientRect();
-        OffsetRect(&m_rect, 10, 10);
+        OffsetRect(&m_rect, 1, 1);
         if (m_rect.top > rect.bottom) {
             int h = m_rect.bottom - m_rect.top;
             m_rect.top = 0;
@@ -101,6 +104,13 @@ class CCallbackExit : public ICallbackMessage {
 public:
     virtual LRESULT HandleMessage(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) {
         DestroyWindow(hwnd);
+        return 0;
+    }
+};
+
+class CCallbackErasebkgnd : public ICallbackMessage {
+public:
+    virtual LRESULT HandleMessage(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) {
         return 0;
     }
 };
@@ -163,6 +173,9 @@ void CControl::AddCallbacks(
     auto paint = new CCallbackPaint(wnd);
     m_callbacks.push_back(paint);
     wnd->AddCallbackWm(WM_PAINT, paint);
+    auto eraser = new CCallbackErasebkgnd();
+    m_callbacks.push_back(eraser);
+    wnd->AddCallbackWm(WM_ERASEBKGND, eraser);
     auto about = new CCallbackAbout();
     m_callbacks.push_back(about);
     wnd->AddCallbackCmd(IDM_ABOUT, about);
